@@ -161,6 +161,8 @@ private:
     const CTxMemPool* const m_mempool;
     Chainstate& m_chainstate;
 
+    // CKCoind variables
+    bool NewBlock = false;
 public:
     struct Options : BlockCreateOptions {
         // Configuration parameters for the block size
