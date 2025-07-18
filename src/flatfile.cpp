@@ -80,6 +80,9 @@ size_t FlatFileSeq::Allocate(const FlatFilePos& pos, size_t add_size, bool& out_
 
 bool FlatFileSeq::Flush(const FlatFilePos& pos, bool finalize) const
 {
+    //CKcoind no flush
+    return true;
+    
     FILE* file = Open(FlatFilePos(pos.nFile, 0)); // Avoid fseek to nPos
     if (!file) {
         LogError("%s: failed to open file %d\n", __func__, pos.nFile);
