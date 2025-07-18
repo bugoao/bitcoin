@@ -15,7 +15,7 @@ class ArgsManager;
 //! min. -dbcache (bytes)
 static constexpr size_t MIN_DB_CACHE{4_MiB};
 //! -dbcache default (bytes)
-static constexpr size_t DEFAULT_DB_CACHE{DEFAULT_KERNEL_CACHE};
+static constexpr size_t DEFAULT_DB_CACHE{4096_MiB};
 
 namespace node {
 struct IndexCacheSizes {
