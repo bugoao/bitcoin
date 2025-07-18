@@ -32,7 +32,7 @@ RUN cmake -B build \
   -DBUILD_TESTS=OFF \
   -DREDUCE_EXPORTS=ON \
   -DBUILD_UTIL=ON \
-  -DBUILD_WALLET_TOOL=ON \
+  -DBUILD_WALLET_TOOL=OFF \
   -DWITH_ZMQ=ON
 RUN cmake --build build
 
