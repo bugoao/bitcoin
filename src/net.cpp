@@ -548,6 +548,20 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
                                 });
         pnode->AddRef();
 
+        NetPermissionFlags permissionFlags = NetPermissionFlags::None;
+    AddWhitelistPermissionFlags(permissionFlags, addrConnect, whitelist_permissions);
+
+    if (NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::Implicit)) {
+            NetPermissions::ClearFlag(permissionFlags, NetPermissionFlags::Implicit);
+            if (gArgs.GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY))
+                NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::ForceRelay);
+            if (gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY))
+                NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::Relay);
+            NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::Mempool);
+            NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::NoBan);
+            LogPrintf("Whitelisted outgoing peer %s\n", addrConnect.ToStringAddrPort());
+        }
+    
         // We're making a new connection, harvest entropy from the time (and our peer count)
         RandAddEvent((uint32_t)id);
 
