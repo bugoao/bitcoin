@@ -109,7 +109,9 @@ void BlockAssembler::resetBlock()
     // Reserve space for fixed-size block header, txs count, and coinbase tx.
     nBlockWeight = m_options.block_reserved_weight;
     nBlockSigOpsCost = m_options.coinbase_output_max_additional_sigops;
-
+    // CKCoinD
+    NewBlock = m_options.block_change;
+    
     // These counters do not include coinbase tx
     nBlockTx = 0;
     nFees = 0;
