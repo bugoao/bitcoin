@@ -834,7 +834,8 @@ static RPCHelpMan getblocktemplate()
     static CBlockIndex* pindexPrev;
     static int64_t time_start;
     static std::unique_ptr<BlockTemplate> block_template;
-    if (!pindexPrev || pindexPrev->GetBlockHash() != tip ||
+    bool BlockChange = false;
+    if (!pindexPrev || (BlockChange = (pindexPrev->GetBlockHash() != tip)) ||
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - time_start > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -846,7 +847,7 @@ static RPCHelpMan getblocktemplate()
         time_start = GetTime();
 
         // Create new block
-        block_template = miner.createNewBlock();
+        block_template = miner.createNewBlock({.block_change = BlockChange});
         CHECK_NONFATAL(block_template);
 
 
