@@ -44,6 +44,9 @@ struct BlockCreateOptions {
      * transaction outputs.
      */
     size_t coinbase_output_max_additional_sigops{400};
+
+    // CKCoinD variable. Set to true to notify of block change
+    bool block_change{false};
     /**
      * Script to put in the coinbase transaction. The default is an
      * anyone-can-spend dummy.
