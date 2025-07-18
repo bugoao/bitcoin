@@ -2,7 +2,7 @@ name: Docker CI
 on:
   push:
     tags:
-      - 'libre-relay-v29.0*'
+      - 'Bitaxe-node-v29.0*'
 
 jobs:
   build:
