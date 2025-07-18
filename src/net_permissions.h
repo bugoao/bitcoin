@@ -19,7 +19,7 @@ extern const std::vector<std::string> NET_PERMISSIONS_DOC;
 /** Default for -whitelistrelay. */
 constexpr bool DEFAULT_WHITELISTRELAY = true;
 /** Default for -whitelistforcerelay. */
-constexpr bool DEFAULT_WHITELISTFORCERELAY = false;
+constexpr bool DEFAULT_WHITELISTFORCERELAY = true;
 
 enum class NetPermissionFlags : uint32_t {
     None = 0,
