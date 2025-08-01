@@ -2,7 +2,7 @@ name: Docker CI
 on:
   push:
     tags:
-      - 'Bitaxe-node-v29.0*'
+      - 'Bitaxe-node-v29.9*'
 
 jobs:
   build:
