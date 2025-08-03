@@ -1,5 +1,5 @@
 # Build stage
-FROM gcr.io/distroless/cc-debian12:latest AS builder
+FROM FROM debian:bookworm-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -44,7 +44,7 @@ RUN cmake -B build \
 RUN cmake --build build
 
 # Final stage
-FROM gcr.io/distroless/cc-debian12:latest
+FROM debian:bookworm-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
