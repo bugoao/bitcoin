@@ -1,5 +1,5 @@
 # Build stage
-ARG BUILD_JOBS=4
+ARG BUILD_JOBS=2
 ARG TARGETARCH
 FROM debian:bookworm-slim AS builder
 
@@ -23,9 +23,9 @@ WORKDIR /build
 COPY . .
 
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -msse4.1 -mavx2 -msha"; \
+        OPT_FLAGS="-O3 -march=x86-64 -mtune=generic"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-        OPT_FLAGS="-O3 -mcpu=neoverse-n1"; \
+        OPT_FLAGS="-O3 -mcpu=generic"; \
     else \
         OPT_FLAGS="-O3"; \
     fi; \
