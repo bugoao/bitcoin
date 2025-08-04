@@ -1,6 +1,4 @@
 # Build stage
-ARG BUILD_JOBS=1
-ARG TARGETARCH
 FROM debian:bookworm-slim AS builder
 
 # Install build dependencies including pkg-config
@@ -16,24 +14,15 @@ RUN apt-get update && \
         libevent-dev \
         libsqlite3-dev \
         libzmq3-dev \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 COPY . .
 
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        OPT_FLAGS="-O3 -march=x86-64 -mtune=generic"; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-        OPT_FLAGS="-O3 -mcpu=generic"; \
-    else \
-        OPT_FLAGS="-O3"; \
-    fi; \
-    echo "Using optimization flags: $OPT_FLAGS" && \
-    cmake -B build \
+RUN cmake -B build \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DCMAKE_CXX_FLAGS="$OPT_FLAGS" \
         -DBUILD_BITCOIND=ON \
         -DBUILD_BITCOIN_CLI=OFF \
         -DBUILD_BITCOIN_TX=OFF \
@@ -59,9 +48,7 @@ RUN cmake --build build --target bitcoind --parallel ${BUILD_JOBS} && \
 FROM debian:bookworm-slim
 
 # Install runtime dependencies with retry
-RUN for i in {1..3}; do \
-        apt-get update && \
-        apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
             libevent-2.1-7 \
             libevent-pthreads-2.1-7 \
             libboost-system1.74.0 \
@@ -69,11 +56,9 @@ RUN for i in {1..3}; do \
             libboost-thread1.74.0 \
             libboost-chrono1.74.0 \
             libzmq5 \
-            libsqlite3-0 && \
-        break || sleep 30; \
-    done; \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+            libsqlite3-0 \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
 
 # Copy only bitcoind binary
 COPY --from=builder /usr/local/bin/bitcoind /usr/local/bin/
