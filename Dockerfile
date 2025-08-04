@@ -1,73 +1,67 @@
 # Build stage
-FROM debian:bookworm-slim AS builder
+FROM FROM debian:bookworm-slim AS builder
 
-# Install build dependencies including pkg-config
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        cmake \
-        pkg-config \
-        libboost-system-dev \
-        libboost-filesystem-dev \
-        libboost-thread-dev \
-        libboost-chrono-dev \
-        libevent-dev \
-        libsqlite3-dev \
-        libzmq3-dev \
-    && apt-get clean \
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    libboost-all-dev \
+    libevent-dev \
+    libtool \
+    pkg-config \
+    libzmq3-dev \
+    libsqlite3-dev \
+    # python3 - only needed if running test suite
+    # optional for UPnP support:
+    # libminiupnpc-dev \
+    # optional for NAT-PMP support:
+    # libnatpmp-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy local bitcoin source
 WORKDIR /build
 COPY . .
 
+# Build Bitcoin Core
 RUN cmake -B build \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DBUILD_BITCOIND=ON \
-        -DBUILD_BITCOIN_CLI=OFF \
-        -DBUILD_BITCOIN_TX=OFF \
-        -DBUILD_BITCOIN_UTIL=OFF \
-        -DBUILD_BITCOIN_WALLET=OFF \
-        -DBUILD_SHARED_LIBS=OFF \
-        -DBUILD_TESTS=OFF \
-        -DENABLE_HARDENING=ON \
-        -DENABLE_SSE41=ON \
-        -DENABLE_AVX2=ON \
-        -DENABLE_SHANI=ON \
-        -DWITH_ZMQ=ON \
-        -DWITH_UPNP=OFF \
-        -DWITH_NATPMP=OFF \
-        -DWITH_BENCH=OFF \
-        -DWITH_GUI=OFF
-
-# Build and install only bitcoind
-RUN cmake --build build --target bitcoind --parallel ${BUILD_JOBS} && \
-    cmake --install build --component bitcoind --strip
+  -DCMAKE_INSTALL_PREFIX=/build \
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/build/bin \
+  -DINSTALL_MAN=OFF \
+  -DBUILD_SHARED_LIBS=OFF \
+  -DBUILD_TESTS=OFF \
+  -DREDUCE_EXPORTS=ON \
+  -DBUILD_UTIL=ON \
+  -DBUILD_WALLET_TOOL=ON \
+  -DBUILD_WALLET=OFF \
+  -DBUILD_GUI=OFF \
+  -DBUILD_BENCH=OFF \
+  -DENABLE_HARDENING=ON \
+  -DWITH_MINIUPNPC=OFF \
+  -DWITH_NATPMP=OFF \
+  -DWITH_ZMQ=ON \
+  -DWITH_CCACHE=OFF
+  
+RUN cmake --build build
 
 # Final stage
 FROM debian:bookworm-slim
 
-# Install runtime dependencies with retry
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-            libevent-2.1-7 \
-            libevent-pthreads-2.1-7 \
-            libboost-system1.74.0 \
-            libboost-filesystem1.74.0 \
-            libboost-thread1.74.0 \
-            libboost-chrono1.74.0 \
-            libzmq5 \
-            libsqlite3-0 \
-        && apt-get clean \
-        && rm -rf /var/lib/apt/lists/*
+    libevent-2.1-7 \
+    libevent-extra-2.1-7 \
+    libevent-pthreads-2.1-7 \
+    libzmq5 \
+    libsqlite3-0 \
+    libdb5.3++ \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy only bitcoind binary
-COPY --from=builder /usr/local/bin/bitcoind /usr/local/bin/
+COPY --from=builder /build/bin/bitcoind /bin
+COPY --from=builder /build/bin/bitcoin-cli /bin
 
-# RPC configuration
 ENV HOME=/data
 VOLUME /data/.bitcoin
 
-# Expose ports
 EXPOSE 8332 8333 18332 18333 18443 18444
 
 ENTRYPOINT ["bitcoind"]
