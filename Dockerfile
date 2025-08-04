@@ -1,5 +1,5 @@
 # Build stage
-ARG BUILD_JOBS=2
+ARG BUILD_JOBS=1
 ARG TARGETARCH
 FROM debian:bookworm-slim AS builder
 
