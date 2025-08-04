@@ -31,7 +31,7 @@ RUN cmake -B build \
   -DBUILD_TESTS=OFF \
   -DREDUCE_EXPORTS=ON \
   -DBUILD_UTIL=ON \
-  -DBUILD_WALLET_TOOL=ON \
+  -DBUILD_WALLET_TOOL=OFF \
   -DBUILD_WALLET=OFF \
   -DBUILD_GUI=OFF \
   -DBUILD_BENCH=OFF \
@@ -57,7 +57,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build/bin/bitcoind /bin
-COPY --from=builder /build/bin/bitcoin-cli /bin
 
 ENV HOME=/data
 VOLUME /data/.bitcoin
