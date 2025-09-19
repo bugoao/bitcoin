@@ -74,7 +74,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -d /data bitcoin
 USER bitcoin
 
-COPY --from=builder /build/bin/bitcoind /bin
+COPY --from=builder --chown=bitcoin:bitcoin /build/bin/bitcoind /usr/local/bin/
 
 ENV HOME=/data
 VOLUME /data/.bitcoin
