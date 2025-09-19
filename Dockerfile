@@ -28,12 +28,19 @@ RUN cmake -B build \
   -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/build/bin \
   -DINSTALL_MAN=OFF \
   -DBUILD_SHARED_LIBS=OFF \
-  -DWITH_CCACHE=OFF \
   -DBUILD_TESTS=OFF \
   -DREDUCE_EXPORTS=ON \
   -DBUILD_UTIL=ON \
-  -DBUILD_WALLET_TOOL=ON \
-  -DWITH_ZMQ=ON
+  -DBUILD_WALLET_TOOL=OFF \
+  -DBUILD_WALLET=OFF \
+  -DBUILD_GUI=OFF \
+  -DBUILD_BENCH=OFF \
+  -DENABLE_HARDENING=ON \
+  -DWITH_MINIUPNPC=OFF \
+  -DWITH_NATPMP=OFF \
+  -DWITH_ZMQ=ON \
+  -DWITH_CCACHE=OFF
+  
 RUN cmake --build build
 
 # Final stage
@@ -50,7 +57,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build/bin/bitcoind /bin
-COPY --from=builder /build/bin/bitcoin-cli /bin
 
 ENV HOME=/data
 VOLUME /data/.bitcoin
