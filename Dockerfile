@@ -3,7 +3,7 @@ FROM debian:bookworm-slim AS builder
 
 ARG CAPNP_VERSION=1.0.1
 
-# 安装构建依赖（去掉 SQLite 相关包）
+# 安装构建依赖（去掉 SQLite）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
@@ -24,21 +24,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# 源码编译安装 Cap'n Proto
-RUN curl -L https://capnproto.org/capnproto-c++-${CAPNP_VERSION}.tar.gz -o capnp.tar.gz \
-    && tar zxf capnp.tar.gz \
-    && cd capnproto-c++-${CAPNP_VERSION} \
-    && ./configure --prefix=/usr \
-    && make -j$(nproc) \
-    && make install \
-    && cd .. \
-    && rm -rf capnproto-c++-${CAPNP_VERSION} capnp.tar.gz
+# （可选）如果禁用 IPC，可以不编译 Cap’n Proto
+# 这里直接跳过 Cap’n Proto 源码编译步骤
 
 # 拷贝 Bitcoin Core 源码
 WORKDIR /build
 COPY . .
 
-# 构建 Bitcoin Core（矿池专用裁剪参数）
+# 构建 Bitcoin Core（禁用 IPC）
 RUN cmake -B build \
   -DCMAKE_INSTALL_PREFIX=/build \
   -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/build/bin \
@@ -62,9 +55,7 @@ RUN cmake -B build \
   -DWITH_CCACHE=OFF \
   -DENABLE_UPNP_DEFAULT=OFF \
   -DENABLE_BIP70=OFF \
-  -DENABLE_IPC=ON
-
-# 编译并剥离调试符号
+  -DENABLE_IPC=OFF
 RUN cmake --build build --parallel $(nproc) \
     && strip --strip-all build/bin/bitcoind
 
@@ -92,7 +83,7 @@ COPY --from=builder --chown=bitcoin:bitcoin /build/bin/bitcoind /usr/local/bin/
 ENV HOME=/data
 VOLUME /data/.bitcoin
 
-# 只暴露主网 P2P 和 RPC 端口
+# 暴露常用端口
 EXPOSE 8332 8333 18332 18333 18443 18444 28332 28333 28334 28335
 
 ENTRYPOINT ["bitcoind"]
