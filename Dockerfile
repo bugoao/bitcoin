@@ -1,7 +1,9 @@
-# Build stage
+# ---------- Build stage ----------
 FROM debian:bookworm-slim AS builder
 
-# Install build dependencies
+ARG CAPNP_VERSION=1.0.1
+
+# 安装构建依赖（包括 Cap’n Proto 编译所需工具）
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -11,18 +13,28 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libzmq3-dev \
     libsqlite3-dev \
-    # python3 - only needed if running test suite
-    # optional for UPnP support:
-    # libminiupnpc-dev \
-    # optional for NAT-PMP support:
-    # libnatpmp-dev \
+    curl \
+    git \
+    autoconf \
+    automake \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy local bitcoin source
+# 源码编译安装 Cap’n Proto
+RUN curl -L https://capnproto.org/capnproto-c++-${CAPNP_VERSION}.tar.gz -o capnp.tar.gz \
+    && tar zxf capnp.tar.gz \
+    && cd capnproto-c++-${CAPNP_VERSION} \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install \
+    && cd .. \
+    && rm -rf capnproto-c++-${CAPNP_VERSION} capnp.tar.gz
+
+# 拷贝 Bitcoin Core 源码
 WORKDIR /build
 COPY . .
 
-# Build Bitcoin Core
+# 构建 Bitcoin Core（保留 IPC 支持）
 RUN cmake -B build \
   -DCMAKE_INSTALL_PREFIX=/build \
   -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/build/bin \
@@ -40,13 +52,12 @@ RUN cmake -B build \
   -DWITH_NATPMP=OFF \
   -DWITH_ZMQ=ON \
   -DWITH_CCACHE=OFF
-  
 RUN cmake --build build
 
-# Final stage
+# ---------- Final stage ----------
 FROM debian:bookworm-slim
 
-# Install runtime dependencies
+# 安装运行时依赖
 RUN apt-get update && apt-get install -y \
     libevent-2.1-7 \
     libevent-extra-2.1-7 \
