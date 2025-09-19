@@ -1,8 +1,6 @@
 name: Docker CI
 on:
-  push:
-    tags:
-      - 'libre-relay-v30.0*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -35,6 +33,7 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
+            --build-arg VERSION=${{ env.VERSION }} \
             --build-arg VERSION=${{ env.VERSION }} \
             --tag ghcr.io/${{ github.repository }}:latest \
             --push .
