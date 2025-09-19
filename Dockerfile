@@ -56,7 +56,7 @@ RUN cmake -B build \
   -DENABLE_UPNP_DEFAULT=OFF \
   -DENABLE_BIP70=OFF \
   -DENABLE_IPC=ON
-RUN cmake --build build && strip build/bin/bitcoind
+RUN cmake --build build --parallel $(nproc) && strip build/bin/bitcoind
 
 # ---------- Runtime stage ----------
 FROM debian:bookworm-slim
