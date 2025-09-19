@@ -32,7 +32,6 @@ RUN curl -L https://capnproto.org/capnproto-c++-${CAPNP_VERSION}.tar.gz -o capnp
 WORKDIR /src
 COPY . .
 
-# 构建 Bitcoin Core
 RUN cmake -B build \
   -DCMAKE_INSTALL_PREFIX=/opt/bitcoin \
   -DINSTALL_MAN=OFF \
